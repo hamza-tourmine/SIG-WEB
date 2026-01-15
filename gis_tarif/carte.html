@@ -10,6 +10,8 @@
   <style>
     #map { height: 500px; margin-bottom: 1rem; }
     .form-container { margin-top: 1rem; }
+    .form-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #fafafa; }
     label { display: block; margin-top: 0.5rem; }
   </style>
 </head>
@@ -19,29 +21,53 @@
   <div id="map"></div>
 
   <div class="form-container">
-    <h2>Calcul du volume de bois</h2>
-    <label>Espèce:
-      <select id="espece">
-        <option value="EUCALYPTUS">Eucalyptus</option>
-        <option value="PIN">Pin</option>
-        <option value="CHENE_LIEGE">Chêne-liège</option>
-      </select>
-    </label>
-    <label>Zone (ex: Canton C3):
-      <input type="text" id="zone" />
-    </label>
-    <label>Diamètre (cm):
-      <input type="number" id="diametre_cm" />
-    </label>
-    <label>Hauteur (m):
-      <input type="number" step="0.1" id="hauteur_m" />
-    </label>
-    <label>Nombre d'arbres:
-      <input type="number" id="nb_arbres" value="1" />
-    </label>
-    <button id="btnCalcul">Calculer</button>
+    <h2>Calculs forestiers</h2>
+    <div class="form-grid">
+      <section class="card">
+        <h3>Calcul du volume de bois</h3>
+        <label>Espèce:
+          <select id="espece">
+            <option value="EUCALYPTUS">Eucalyptus</option>
+            <option value="PIN">Pin</option>
+            <option value="CHENE_LIEGE">Chêne-liège</option>
+          </select>
+        </label>
+        <label>Zone (ex: Canton C3):
+          <input type="text" id="zone" />
+        </label>
+        <label>Diamètre (cm):
+          <input type="number" id="diametre_cm" />
+        </label>
+        <label>Hauteur (m):
+          <input type="number" step="0.1" id="hauteur_m" />
+        </label>
+        <label>Nombre d'arbres:
+          <input type="number" id="nb_arbres" value="1" />
+        </label>
+        <button id="btnCalculBois">Calculer</button>
 
-    <pre id="resultat"></pre>
+        <pre id="resultatBois"></pre>
+      </section>
+
+      <section class="card">
+        <h3>Calcul du rendement liège</h3>
+        <label>Zone (ex: Canton C3):
+          <input type="text" id="zone_liege" />
+        </label>
+        <label>Circonférence (cm):
+          <input type="number" id="circonference_cm" />
+        </label>
+        <label>Épaisseur (mm):
+          <input type="number" step="0.1" id="epaisseur_mm" />
+        </label>
+        <label>Nombre d'arbres:
+          <input type="number" id="nb_arbres_liege" value="1" />
+        </label>
+        <button id="btnCalculLiege">Calculer</button>
+
+        <pre id="resultatLiege"></pre>
+      </section>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -54,7 +80,7 @@
 
     // TODO : ajouter la couche WMS GeoServer ici
 
-    document.getElementById("btnCalcul").addEventListener("click", async () => {
+    document.getElementById("btnCalculBois").addEventListener("click", async () => {
       const payload = {
         espece: document.getElementById("espece").value,
         zone: document.getElementById("zone").value,
@@ -72,7 +98,28 @@
       });
 
       const res = await response.json();
-      document.getElementById("resultat").textContent =
+      document.getElementById("resultatBois").textContent =
+        JSON.stringify(res, null, 2);
+    });
+
+    document.getElementById("btnCalculLiege").addEventListener("click", async () => {
+      const payload = {
+        zone: document.getElementById("zone_liege").value,
+        circonference_cm: parseInt(document.getElementById("circonference_cm").value),
+        epaisseur_mm: parseFloat(document.getElementById("epaisseur_mm").value),
+        nb_arbres: parseInt(document.getElementById("nb_arbres_liege").value),
+      };
+
+      const response = await fetch("/api/liege/calcul/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const res = await response.json();
+      document.getElementById("resultatLiege").textContent =
         JSON.stringify(res, null, 2);
     });
   </script>
