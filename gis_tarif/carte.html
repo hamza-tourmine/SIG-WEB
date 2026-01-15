@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>GIS Tarif Cubage - Maâmora</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <style>
+    #map { height: 500px; margin-bottom: 1rem; }
+    .form-container { margin-top: 1rem; }
+    label { display: block; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>GIS Tarif Cubage - Forêt de la Maâmora</h1>
+
+  <div id="map"></div>
+
+  <div class="form-container">
+    <h2>Calcul du volume de bois</h2>
+    <label>Espèce:
+      <select id="espece">
+        <option value="EUCALYPTUS">Eucalyptus</option>
+        <option value="PIN">Pin</option>
+        <option value="CHENE_LIEGE">Chêne-liège</option>
+      </select>
+    </label>
+    <label>Zone (ex: Canton C3):
+      <input type="text" id="zone" />
+    </label>
+    <label>Diamètre (cm):
+      <input type="number" id="diametre_cm" />
+    </label>
+    <label>Hauteur (m):
+      <input type="number" step="0.1" id="hauteur_m" />
+    </label>
+    <label>Nombre d'arbres:
+      <input type="number" id="nb_arbres" value="1" />
+    </label>
+    <button id="btnCalcul">Calculer</button>
+
+    <pre id="resultat"></pre>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([34.1, -6.5], 9);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18
+    }).addTo(map);
+
+    // TODO : ajouter la couche WMS GeoServer ici
+
+    document.getElementById("btnCalcul").addEventListener("click", async () => {
+      const payload = {
+        espece: document.getElementById("espece").value,
+        zone: document.getElementById("zone").value,
+        diametre_cm: parseInt(document.getElementById("diametre_cm").value),
+        hauteur_m: parseFloat(document.getElementById("hauteur_m").value),
+        nb_arbres: parseInt(document.getElementById("nb_arbres").value),
+      };
+
+      const response = await fetch("/api/bois/calcul/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const res = await response.json();
+      document.getElementById("resultat").textContent =
+        JSON.stringify(res, null, 2);
+    });
+  </script>
+</body>
+</html>
